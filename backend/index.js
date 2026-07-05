@@ -1,4 +1,5 @@
 import express from "express";
+import mongoose from "mongoose";
 import dotenv from "dotenv";
 import cors from "cors";
 import connectDB from "./config/dbConfig.js";
@@ -7,7 +8,7 @@ import lead from "./routes/lead.js";
 import employee from "./routes/employee.js";
 
 dotenv.config();
-connectDB();
+// connectDB(); // Removed global call
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -22,8 +23,30 @@ app.use(
   }),
 );
 
+// Ensure DB is connected before handling any API routes
+app.use("/api", async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (error) {
+    res.status(500).json({ message: "Database connection failed", error: error.message });
+  }
+});
+
 app.use("/api/lead", lead);
 app.use("/api/employee", employee);
+
+app.get("/api/health", (req, res) => {
+  const isConnectionUrlDefined = !!process.env.CONNECTION_URL;
+  const urlSnippet = isConnectionUrlDefined ? process.env.CONNECTION_URL.substring(0, 20) + '...' : 'undefined';
+  
+  res.json({
+    status: "ok",
+    hasConnectionUrl: isConnectionUrlDefined,
+    connectionUrlSnippet: urlSnippet,
+    mongooseState: mongoose.connection.readyState
+  });
+});
 
 app.get("/", (req, res) => {
   res.send("Hello dev");
