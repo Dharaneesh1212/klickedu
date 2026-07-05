@@ -5,8 +5,7 @@ import { decryptPassword, encryptPassword } from "../utils/index.js";
 // Signup
 export const signup = async (req, res) => {
   try {
-    const { username, factoryName, password, confirmPassword, userType } =
-      req.body;
+    const { username, email, password, confirmPassword } = req.body;
 
     if (password !== confirmPassword) {
       return res.status(400).json({ message: "Passwords do not match" });
@@ -20,10 +19,9 @@ export const signup = async (req, res) => {
     const encryptedPassword = encryptPassword(password);
     const newUser = new User({
       username,
-      factoryName,
+      email,
       password: encryptedPassword,
       confirmPassword: encryptedPassword,
-      userType,
     });
 
     await newUser.save();

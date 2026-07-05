@@ -1,33 +1,25 @@
 import express from "express";
 import {
-  create,
-  getAll,
-  getById,
-  remove,
-  update,
-} from "../controllers/common_controllers.js";
-import Lead from "../models/Lead.js";
+  createLead,
+  getLeads,
+  getLeadById,
+  updateLead,
+  deleteLead,
+  addNote,
+  updateNote,
+  deleteNote,
+} from "../controllers/lead_controllers.js";
 
 const router = express.Router();
 
-router.post("/", async (req, res) => {
-  create(req, res, Lead);
-});
+router.post("/", createLead);
+router.get("/", getLeads);
+router.get("/:id", getLeadById);
+router.put("/:id", updateLead);
+router.delete("/:id", deleteLead);
 
-router.put("/", async (req, res) => {
-  update(req, res, Lead);
-});
-
-router.get("/", async (req, res) => {
-  getAll(req, res, Lead);
-});
-
-router.get("/", async (req, res) => {
-  getById(req, res, Lead);
-});
-
-router.delete("/", async (req, res) => {
-  remove(req, res, Lead);
-});
+router.post("/:id/notes", addNote);
+router.put("/:id/notes/:noteId", updateNote);
+router.delete("/:id/notes/:noteId", deleteNote);
 
 export default router;
