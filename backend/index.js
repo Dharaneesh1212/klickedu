@@ -8,7 +8,7 @@ import lead from "./routes/lead.js";
 import employee from "./routes/employee.js";
 
 dotenv.config();
-// connectDB(); // Removed global call
+connectDB();
 
 const app = express();
 const PORT = process.env.PORT || 5001;
@@ -35,18 +35,6 @@ app.use("/api", async (req, res, next) => {
 
 app.use("/api/lead", lead);
 app.use("/api/employee", employee);
-
-app.get("/api/health", (req, res) => {
-  const isConnectionUrlDefined = !!process.env.CONNECTION_URL;
-  const urlSnippet = isConnectionUrlDefined ? process.env.CONNECTION_URL.substring(0, 20) + '...' : 'undefined';
-  
-  res.json({
-    status: "ok",
-    hasConnectionUrl: isConnectionUrlDefined,
-    connectionUrlSnippet: urlSnippet,
-    mongooseState: mongoose.connection.readyState
-  });
-});
 
 app.get("/", (req, res) => {
   res.send("Hello dev");
