@@ -1,13 +1,19 @@
 import mongoose from "mongoose";
 
-let cachedDb = null;
-
 const connectDB = async () => {
-  if (cachedDb) {
-    return cachedDb;
+  // If already connected, do nothing
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
   }
 
-  // Fallback to local .env value if Vercel environment variable is missing (for debugging)
+  // If currently connecting, wait for it
+  if (mongoose.connection.readyState === 2) {
+    await new Promise((resolve) => {
+      mongoose.connection.once("connected", resolve);
+    });
+    return mongoose.connection;
+  }
+
   const uri = process.env.CONNECTION_URL || "mongodb+srv://dharun12122002_db_user:Wro8wvIvJNiUYHO9@klickedu.v1y4fsv.mongodb.net/?appName=klickedu";
 
   if (!uri) {
@@ -17,9 +23,9 @@ const connectDB = async () => {
   try {
     console.log("Connecting to MongoDB...");
     const db = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 5000, // Timeout after 5s instead of hanging Vercel
+      serverSelectionTimeoutMS: 5000,
+      bufferCommands: false, // Don't buffer commands if connection fails
     });
-    cachedDb = db;
     console.log("✅ Database connected successfully");
     return db;
   } catch (error) {
