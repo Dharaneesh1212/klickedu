@@ -17,7 +17,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174"],
+    origin: process.env.CLIENT_URL ? process.env.CLIENT_URL.split(',') : ["http://localhost:5173", "http://localhost:5174", "http://localhost:5000", "http://localhost:5001"],
     credentials: true,
   }),
 );
@@ -28,4 +28,9 @@ app.use("/api/employee", employee);
 app.get("/", (req, res) => {
   res.send("Hello dev");
 });
-app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+
+if (process.env.NODE_ENV !== "production") {
+  app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+}
+
+export default app;
