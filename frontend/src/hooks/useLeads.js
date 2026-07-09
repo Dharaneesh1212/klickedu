@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import api from '../services/api';
 
 const useLeads = () => {
@@ -14,9 +14,19 @@ const useLeads = () => {
       limit: parseInt(params.get('limit')) || 10,
       search: params.get('search') || '',
       status: params.get('status') || '',
+      leadSource: params.get('leadSource') || '',
+      priority: params.get('priority') || '',
+      stage: params.get('stage') || '',
+      subStage: params.get('subStage') || '',
+      country: params.get('country') || '',
+      courseInterested: params.get('courseInterested') || '',
       assignedEmployee: params.get('assignedEmployee') || '',
       startDate: params.get('startDate') || '',
       endDate: params.get('endDate') || '',
+      followUpStartDate: params.get('followUpStartDate') || '',
+      followUpEndDate: params.get('followUpEndDate') || '',
+      sortField: params.get('sortField') || 'createdAt',
+      sortOrder: params.get('sortOrder') || 'desc',
     };
   };
 
@@ -29,9 +39,19 @@ const useLeads = () => {
     if (filters.limit !== 10) params.set('limit', filters.limit);
     if (filters.search) params.set('search', filters.search);
     if (filters.status) params.set('status', filters.status);
+    if (filters.leadSource) params.set('leadSource', filters.leadSource);
+    if (filters.priority) params.set('priority', filters.priority);
+    if (filters.stage) params.set('stage', filters.stage);
+    if (filters.subStage) params.set('subStage', filters.subStage);
+    if (filters.country) params.set('country', filters.country);
+    if (filters.courseInterested) params.set('courseInterested', filters.courseInterested);
     if (filters.assignedEmployee) params.set('assignedEmployee', filters.assignedEmployee);
     if (filters.startDate) params.set('startDate', filters.startDate);
     if (filters.endDate) params.set('endDate', filters.endDate);
+    if (filters.followUpStartDate) params.set('followUpStartDate', filters.followUpStartDate);
+    if (filters.followUpEndDate) params.set('followUpEndDate', filters.followUpEndDate);
+    if (filters.sortField !== 'createdAt') params.set('sortField', filters.sortField);
+    if (filters.sortOrder !== 'desc') params.set('sortOrder', filters.sortOrder);
 
     const newUrl = `${window.location.pathname}${params.toString() ? '?' + params.toString() : ''}`;
     window.history.replaceState(null, '', newUrl);
@@ -63,7 +83,7 @@ const useLeads = () => {
     setFilters((prev) => ({
       ...prev,
       [key]: value,
-      ...(key !== 'page' && key !== 'limit' ? { page: 1 } : {}), // reset page to 1 if filter changes
+      ...(key !== 'page' && key !== 'limit' && key !== 'sortField' && key !== 'sortOrder' ? { page: 1 } : {}), // reset page to 1 if filter changes
     }));
   };
 
@@ -73,9 +93,19 @@ const useLeads = () => {
       limit: 10,
       search: '',
       status: '',
+      leadSource: '',
+      priority: '',
+      stage: '',
+      subStage: '',
+      country: '',
+      courseInterested: '',
       assignedEmployee: '',
       startDate: '',
       endDate: '',
+      followUpStartDate: '',
+      followUpEndDate: '',
+      sortField: 'createdAt',
+      sortOrder: 'desc',
     });
   };
 

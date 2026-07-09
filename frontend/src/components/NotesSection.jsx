@@ -66,7 +66,8 @@ const NotesSection = ({ leadId, notes, onNotesChange, employees }) => {
     if (employees.length > 0 && !selectedUserId) {
       setSelectedUserId(employees[0]._id);
     }
-  }, [employees, selectedUserId]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [employees]);
 
   return (
     <div className="notes-section">

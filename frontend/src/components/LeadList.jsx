@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Eye, Edit2, AlertCircle, Plus } from 'lucide-react';
+import { Eye, Edit2, AlertCircle, Plus, Trash2, Clock, ArrowUp, ArrowDown } from 'lucide-react';
 import { format } from 'date-fns';
 import api from '../services/api';
 import useLeads from '../hooks/useLeads';
@@ -58,8 +58,51 @@ const LeadList = () => {
   };
 
   const getStatusBadge = (status) => {
-    return <span className={`badge ${status.toLowerCase()}`}>{status}</span>;
+    return <span className={`badge ${status?.toLowerCase()}`}>{status}</span>;
   };
+
+  const getPriorityBadge = (priority) => {
+    if (!priority) return null;
+    const colors = { Hot: '#FEE2E2', Warm: '#FEF3C7', Cold: '#DBEAFE' };
+    const textColors = { Hot: '#DC2626', Warm: '#D97706', Cold: '#2563EB' };
+    return (
+      <span className="badge" style={{ background: colors[priority], color: textColors[priority] }}>
+        {priority}
+      </span>
+    );
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Are you sure you want to delete this lead? This action cannot be undone.")) {
+      try {
+        await api.delete(`/lead/${id}`);
+        showToast('Lead deleted successfully');
+        fetchLeads();
+      } catch (err) {
+        showToast(err.message || 'Failed to delete lead', 'error');
+      }
+    }
+  };
+
+  const handleSort = (field) => {
+    if (filters.sortField === field) {
+      updateFilter('sortOrder', filters.sortOrder === 'asc' ? 'desc' : 'asc');
+    } else {
+      updateFilter('sortField', field);
+      updateFilter('sortOrder', 'asc');
+    }
+  };
+
+  const SortableHeader = ({ field, label }) => (
+    <th onClick={() => handleSort(field)} style={{ cursor: 'pointer', userSelect: 'none' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+        {label}
+        {filters.sortField === field && (
+          filters.sortOrder === 'asc' ? <ArrowUp size={14} /> : <ArrowDown size={14} />
+        )}
+      </div>
+    </th>
+  );
 
   return (
     <div>
@@ -87,12 +130,14 @@ const LeadList = () => {
         <table>
           <thead>
             <tr>
-              <th>Lead Name</th>
+              <SortableHeader field="name" label="Lead Name" />
               <th>Mobile</th>
-              <th>Email</th>
-              <th>Status</th>
+              <SortableHeader field="status" label="Status" />
+              <SortableHeader field="stage" label="Stage" />
+              <SortableHeader field="priority" label="Priority" />
               <th>Assigned To</th>
-              <th>Created Date</th>
+              <SortableHeader field="nextFollowUpDate" label="Next Follow-up" />
+              <SortableHeader field="createdAt" label="Created Date" />
               <th>Actions</th>
             </tr>
           </thead>
@@ -100,14 +145,14 @@ const LeadList = () => {
             {loading ? (
               [...Array(filters.limit)].map((_, i) => (
                 <tr key={i}>
-                  {Array(7).fill(0).map((_, j) => (
+                  {Array(9).fill(0).map((_, j) => (
                     <td key={j}><div className="skeleton"></div></td>
                   ))}
                 </tr>
               ))
             ) : error ? (
               <tr>
-                <td colSpan="7">
+                <td colSpan="9">
                   <div className="empty-state error">
                     Error: {error}
                     <br />
@@ -117,29 +162,44 @@ const LeadList = () => {
               </tr>
             ) : leads.length === 0 ? (
               <tr>
-                <td colSpan="7">
+                <td colSpan="9">
                   <div className="empty-state">No leads found.</div>
                 </td>
               </tr>
             ) : (
-              leads.map((lead) => (
-                <tr key={lead._id}>
-                  <td>{lead.name}</td>
-                  <td>{lead.mobile}</td>
-                  <td>{lead.email}</td>
-                  <td>{getStatusBadge(lead.status)}</td>
-                  <td>{lead.assignedEmployee ? lead.assignedEmployee.username : 'Unassigned'}</td>
-                  <td>{format(new Date(lead.createdAt), 'dd MMM yyyy')}</td>
-                  <td>
-                    <button className="btn-icon" onClick={() => openView(lead._id)} title="View Details">
-                      <Eye size={18} />
-                    </button>
-                    <button className="btn-icon" onClick={() => openEdit(lead._id)} title="Edit Lead">
-                      <Edit2 size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))
+              leads.map((lead) => {
+                const isOverdue = lead.isOverdue;
+                return (
+                  <tr key={lead._id} style={isOverdue ? { backgroundColor: '#FEF2F2' } : {}}>
+                    <td>{lead.name}</td>
+                    <td>{lead.mobile}</td>
+                    <td>{getStatusBadge(lead.status)}</td>
+                    <td><span className="badge" style={{ background: '#F3F4F6', color: '#374151' }}>{lead.stage}</span></td>
+                    <td>{getPriorityBadge(lead.priority)}</td>
+                    <td>{lead.assignedEmployee ? lead.assignedEmployee.username : 'Unassigned'}</td>
+                    <td>
+                      {lead.nextFollowUpDate ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '4px', color: isOverdue ? '#DC2626' : 'var(--text-muted)' }}>
+                          {isOverdue && <Clock size={14} />}
+                          {format(new Date(lead.nextFollowUpDate), 'dd MMM yyyy')}
+                        </div>
+                      ) : '-'}
+                    </td>
+                    <td>{format(new Date(lead.createdAt), 'dd MMM yyyy')}</td>
+                    <td>
+                      <button className="btn-icon" onClick={() => openView(lead._id)} title="View Details">
+                        <Eye size={18} />
+                      </button>
+                      <button className="btn-icon" onClick={() => openEdit(lead._id)} title="Edit Lead">
+                        <Edit2 size={18} />
+                      </button>
+                      <button className="btn-icon" onClick={() => handleDelete(lead._id)} title="Delete Lead" style={{ color: 'var(--danger)' }}>
+                        <Trash2 size={18} />
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })
             )}
           </tbody>
         </table>

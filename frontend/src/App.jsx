@@ -1,6 +1,7 @@
 import { BrowserRouter, Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import LeadList from './components/LeadList';
 import EmployeeList from './components/EmployeeList';
+import Dashboard from './components/Dashboard';
 import './index.css';
 
 const App = () => {
@@ -12,6 +13,9 @@ const App = () => {
         </div>
         
         <div className="nav-bar">
+          <NavLink to="/dashboard" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
+            Dashboard
+          </NavLink>
           <NavLink to="/leads" className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}>
             Leads
           </NavLink>
@@ -22,7 +26,8 @@ const App = () => {
 
         <div className="card">
           <Routes>
-            <Route path="/" element={<Navigate to="/leads" replace />} />
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/leads" element={<LeadList />} />
             <Route path="/employees" element={<EmployeeList />} />
           </Routes>
